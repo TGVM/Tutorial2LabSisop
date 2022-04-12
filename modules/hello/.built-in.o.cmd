@@ -1,0 +1,1 @@
+cmd_/home/labredes/Documentos/Tutorial2/linuxdistro/buildroot-2022.02/modules/hello/built-in.o :=  rm -f /home/labredes/Documentos/Tutorial2/linuxdistro/buildroot-2022.02/modules/hello/built-in.o; ar rcSTPD /home/labredes/Documentos/Tutorial2/linuxdistro/buildroot-2022.02/modules/hello/built-in.o
