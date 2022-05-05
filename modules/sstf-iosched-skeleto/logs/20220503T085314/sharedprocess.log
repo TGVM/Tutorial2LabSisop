@@ -1,0 +1,2 @@
+[2022-05-03 08:53:18.377] [sharedprocess] [info] Starting worker process with pid 5727 (type: fileWatcher, window: 1).
+[2022-05-03 08:53:40.009] [sharedprocess] [info] Worker process with pid 5727 terminated normally (type: fileWatcher, window: 1).
