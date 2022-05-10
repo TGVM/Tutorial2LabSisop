@@ -37,7 +37,7 @@ static int sstf_dispatch(struct request_queue *q, int force){
 	 * Antes de retornar da função, imprima o sector que foi atendido.
 	 */
 
-	printk(KERN_EMERG "INICIO DISP:\ncurPos = %llu", curPos);
+	printk(KERN_EMERG "\nINICIO DISP:\ncurPos = %llu", curPos);
 
 	// Ponteiro para nodo
 	struct list_head *ptr;
@@ -80,23 +80,19 @@ static int sstf_dispatch(struct request_queue *q, int force){
 
 	//rq = list_first_entry_or_null(&nd->queue, struct request, queuelist);
 	if (rq) {
-		printk(KERN_EMERG "retorna o rq");
+		printk(KERN_EMERG "-> retorna o rq");
 
 		curPos = blk_rq_pos(rq);
 
 		list_del_init(&rq->queuelist);
 
-		//printk(KERN_EMERG "foi dps linha 86");
-
 		elv_dispatch_sort(q, rq);
 
-		//printk(KERN_EMERG "foi dps linha 90");
-
-		printk(KERN_EMERG "[SSTF]\033[1;31m dsp\033[0m %c %llu\n", direction, blk_rq_pos(rq));
+		printk(KERN_EMERG "[SSTF]\033[0;36m dsp\033[0m %c %llu\n", direction, blk_rq_pos(rq));
 
 		return 1;
 	}
-	//printk(KERN_EMERG "foi no fim");
+	printk(KERN_EMERG "-> sem dispatch");
 
 	return 0;
 }
@@ -104,12 +100,15 @@ static int sstf_dispatch(struct request_queue *q, int force){
 static void sstf_add_request(struct request_queue *q, struct request *rq){
 	struct sstf_data *nd = q->elevator->elevator_data;
 	char direction = 'R';
+	int adicionado = 0;
 
 	/* Aqui deve-se adicionar uma requisição na fila do driver.
 	 * Use como exemplo o driver noop-iosched.c
 	 *
 	 * Antes de retornar da função, imprima o sector que foi adicionado na lista.
 	 */
+
+	printk(KERN_EMERG "\nINICIO ADD:\ncurPos = %llu", curPos);
 
 	// Ponteiro para nodo
 	struct list_head *ptr;
@@ -118,21 +117,65 @@ static void sstf_add_request(struct request_queue *q, struct request *rq){
 		printk(KERN_EMERG "ta vazia a fila");
 
 		list_add_tail(&rq->queuelist, &nd->queue);
+		adicionado = 1;
 	} else {
 		printk(KERN_EMERG "tem coisa na fila");
+
+
+
+		// DEBUG printar fila inteira
+		printk(KERN_EMERG "\n ===== FILA TODA =====");
+		list_for_each(ptr, &nd->queue) {
+			atual = list_entry(ptr, struct request, queuelist);
+			if(atual == list_last_entry(&nd->queue, struct request, queuelist)) {
+				printk(KERN_EMERG "%llu",blk_rq_pos(atual));	
+			} else {
+				printk(KERN_EMERG "%llu >",blk_rq_pos(atual));
+			}
+		}
+
+
 
 		// Itera sobre lista da fila
 		list_for_each(ptr, &nd->queue) {
 			atual = list_entry(ptr, struct request, queuelist);
-			// Se posicao do req for maior q o ultimo
-			if (blk_rq_pos(rq) > blk_rq_pos(atual)) {
+			
+			// Se valor do nodo da lista for maior que valor da requisicao a ser adicionada
+			if(blk_rq_pos(atual) > blk_rq_pos(rq)) {
+				printk(KERN_EMERG "%llu > %llu",blk_rq_pos(atual), blk_rq_pos(rq));
+
+				// Adiciona a requisicao antes do nodo
+				//list_add(&rq->queuelist, &atual->queuelist);
+
+				// Adiciona a requisicao depois do nodo
 				list_add_tail(&rq->queuelist, &atual->queuelist);
+
+				adicionado = 1;
+
+				break;
 			}
+			
+			
+			// Se posicao do req for maior q o ultimo
+			/*if (blk_rq_pos(rq) > blk_rq_pos(atual)) {
+				printk(KERN_EMERG "%llu > %llu",blk_rq_pos(rq), blk_rq_pos(atual));
+
+				// Adiciona depois do nodo
+				list_add_tail(&rq->queuelist, &atual->queuelist);
+				adicionado = 1;
+
+				break;
+			}*/
+
 		}
 	}
 
-	//list_add_tail(&rq->queuelist, &nd->queue);
-	printk(KERN_EMERG "[SSTF] \033[1;32madd\033[0m %c %llu\n", direction, blk_rq_pos(rq));
+	if(adicionado) {
+		//list_add_tail(&rq->queuelist, &nd->queue);
+		printk(KERN_EMERG "[SSTF] \033[1;32madd\033[0m %c %llu\n", direction, blk_rq_pos(rq));
+	} else {
+		printk(KERN_EMERG "\033[1;31mERRO\033[0m no add: [SSTF] add %c %llu nao foi adicionado\n", direction, blk_rq_pos(rq));
+	}
 }
 
 static int sstf_init_queue(struct request_queue *q, struct elevator_type *e){

@@ -11,7 +11,7 @@
 
 #define BUFFER_LENGTH 512
 #define DISK_SZ 1073741824
-#define FORKS 16
+#define FORKS 6
 
 int main()
 {
@@ -41,6 +41,7 @@ int main()
 		return errno;
 	}
 
+	sleep(1);
 	for (i = 0; i < 10; i++) {
 		pos = (rand() % (DISK_SZ >> 9));
 		/* Set position */
