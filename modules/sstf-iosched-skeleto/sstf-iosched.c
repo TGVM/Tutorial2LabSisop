@@ -37,38 +37,40 @@ static int sstf_dispatch(struct request_queue *q, int force){
 	 * Antes de retornar da função, imprima o sector que foi atendido.
 	 */
 
+	printk(KERN_EMERG "INICIO DISP:\ncurPos = %llu", curPos);
+
 	// Ponteiro para nodo
 	struct list_head *ptr;
 	// Itera sobre lista da fila
 	list_for_each(ptr, &nd->queue) {
-		printk(KERN_EMERG "entrou no for");
+		printk(KERN_EMERG "   entrou no for");
 
 		rq = list_entry(ptr, struct request, queuelist);
 		// Se posicao do req for maior q o ultimo
 		if (blk_rq_pos(rq) > curPos) {
-			printk(KERN_EMERG "entrou no if de escolha");
+			printk(KERN_EMERG "      entrou no if de escolha");
 
 			//aux1 = abs(blk_rq_pos(rq) - curPos)
 			//aux2  = abs(anterior -curPos)
 			//if(aux1 < aux2) { escolhe aux1 } else aux2
 			if(rq != list_first_entry_or_null(&nd->queue, struct request, queuelist)) {
-				printk(KERN_EMERG "entrou no if de cabeca");
+				printk(KERN_EMERG "         entrou no if de cabeca");
 
 				long long unsigned int auxNext = abs(blk_rq_pos(rq) - curPos);
 				long long unsigned int auxPrev = abs(blk_rq_pos(list_prev_entry(rq, queuelist)) - curPos);
 				
 				if(auxNext < auxPrev) {
-					printk(KERN_EMERG "escolheu o next");
+					printk(KERN_EMERG "            escolheu o next");
 
 					break;
 				} else {
-					printk(KERN_EMERG "escolheu o prev");
+					printk(KERN_EMERG "            escolheu o prev");
 
 					rq = list_prev_entry(rq, queuelist);
 					break;
 				}
 			} else {
-				printk(KERN_EMERG "escolheu a cabeca ou nulo");
+				printk(KERN_EMERG "         escolheu a cabeca ou nulo");
 
 				rq = list_first_entry_or_null(&nd->queue, struct request, queuelist);
 				break;
@@ -82,21 +84,19 @@ static int sstf_dispatch(struct request_queue *q, int force){
 
 		curPos = blk_rq_pos(rq);
 
-		printk(KERN_EMERG "linha 82 curPos = %llu", curPos);
-
 		list_del_init(&rq->queuelist);
 
-		printk(KERN_EMERG "foi dps linha 86");
+		//printk(KERN_EMERG "foi dps linha 86");
 
 		elv_dispatch_sort(q, rq);
 
-		printk(KERN_EMERG "foi dps linha 90");
+		//printk(KERN_EMERG "foi dps linha 90");
 
-		printk(KERN_EMERG "[SSTF] dsp %c %llu\n", direction, blk_rq_pos(rq));
+		printk(KERN_EMERG "[SSTF]\033[1;31m dsp\033[0m %c %llu\n", direction, blk_rq_pos(rq));
 
 		return 1;
 	}
-	printk(KERN_EMERG "foi no fim");
+	//printk(KERN_EMERG "foi no fim");
 
 	return 0;
 }
@@ -115,11 +115,11 @@ static void sstf_add_request(struct request_queue *q, struct request *rq){
 	struct list_head *ptr;
 	struct request *atual;
 	if(list_empty(&nd->queue)) {
-		printk(KERN_EMERG "ta vazio samerda");
+		printk(KERN_EMERG "ta vazia a fila");
 
 		list_add_tail(&rq->queuelist, &nd->queue);
 	} else {
-		printk(KERN_EMERG "te coisa em samerda");
+		printk(KERN_EMERG "tem coisa na fila");
 
 		// Itera sobre lista da fila
 		list_for_each(ptr, &nd->queue) {
@@ -132,7 +132,7 @@ static void sstf_add_request(struct request_queue *q, struct request *rq){
 	}
 
 	//list_add_tail(&rq->queuelist, &nd->queue);
-	printk(KERN_EMERG "[SSTF] add %c %llu\n", direction, blk_rq_pos(rq));
+	printk(KERN_EMERG "[SSTF] \033[1;32madd\033[0m %c %llu\n", direction, blk_rq_pos(rq));
 }
 
 static int sstf_init_queue(struct request_queue *q, struct elevator_type *e){
