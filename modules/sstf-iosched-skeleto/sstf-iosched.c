@@ -39,15 +39,33 @@ static int sstf_dispatch(struct request_queue *q, int force){
 
 	printk(KERN_EMERG "\nINICIO DISP:\ncurPos = %llu", curPos);
 
+	struct request *melhorItem = rq;
+	long long unsigned int menorDif = 18000000000000000;
+
+	int escolheu = 0;
+
+	printk(KERN_EMERG "   Lista Diff:");
 	// Ponteiro para nodo
 	struct list_head *ptr;
 	// Itera sobre lista da fila
 	list_for_each(ptr, &nd->queue) {
-		printk(KERN_EMERG "   entrou no for");
+		//printk(KERN_EMERG "   entrou no for");
 
 		rq = list_entry(ptr, struct request, queuelist);
+
+
+		printk(KERN_EMERG "       %llu", abs(curPos - blk_rq_pos(rq)));
+		// Nova Tentativa
+		if(abs(curPos - blk_rq_pos(rq)) < menorDif) {
+			melhorItem = rq;
+			menorDif = abs(curPos - blk_rq_pos(rq));
+
+			escolheu = 1;
+		}
+
+
 		// Se posicao do req for maior q o ultimo
-		if (blk_rq_pos(rq) > curPos) {
+		/*if (blk_rq_pos(rq) > curPos) {
 			printk(KERN_EMERG "      entrou no if de escolha");
 
 			//aux1 = abs(blk_rq_pos(rq) - curPos)
@@ -75,7 +93,12 @@ static int sstf_dispatch(struct request_queue *q, int force){
 				rq = list_first_entry_or_null(&nd->queue, struct request, queuelist);
 				break;
 			}
-		}
+		}*/	
+	}
+
+	printk(KERN_EMERG "   Escolhido Diff %llu", menorDif);
+	if(escolheu) {
+		rq = melhorItem;
 	}
 
 	//rq = list_first_entry_or_null(&nd->queue, struct request, queuelist);
@@ -113,13 +136,13 @@ static void sstf_add_request(struct request_queue *q, struct request *rq){
 	// Ponteiro para nodo
 	struct list_head *ptr;
 	struct request *atual;
-	if(list_empty(&nd->queue)) {
+	//if(list_empty(&nd->queue)) {
 		printk(KERN_EMERG "ta vazia a fila");
 
 		list_add_tail(&rq->queuelist, &nd->queue);
 		adicionado = 1;
-	} else {
-		printk(KERN_EMERG "tem coisa na fila");
+	//} else {
+		//printk(KERN_EMERG "tem coisa na fila");
 
 
 
@@ -137,7 +160,7 @@ static void sstf_add_request(struct request_queue *q, struct request *rq){
 
 
 		// Itera sobre lista da fila
-		list_for_each(ptr, &nd->queue) {
+		/*list_for_each(ptr, &nd->queue) {
 			atual = list_entry(ptr, struct request, queuelist);
 			
 			// Se valor do nodo da lista for maior que valor da requisicao a ser adicionada
@@ -157,18 +180,18 @@ static void sstf_add_request(struct request_queue *q, struct request *rq){
 			
 			
 			// Se posicao do req for maior q o ultimo
-			/*if (blk_rq_pos(rq) > blk_rq_pos(atual)) {
-				printk(KERN_EMERG "%llu > %llu",blk_rq_pos(rq), blk_rq_pos(atual));
-
-				// Adiciona depois do nodo
-				list_add_tail(&rq->queuelist, &atual->queuelist);
-				adicionado = 1;
-
-				break;
-			}*/
+			//if (blk_rq_pos(rq) > blk_rq_pos(atual)) {
+			//	printk(KERN_EMERG "%llu > %llu",blk_rq_pos(rq), blk_rq_pos(atual));
+			//
+			//	// Adiciona depois do nodo
+			//	list_add_tail(&rq->queuelist, &atual->queuelist);
+			//	adicionado = 1;
+			//
+			//	break;
+			//}
 
 		}
-	}
+	}*/
 
 	if(adicionado) {
 		//list_add_tail(&rq->queuelist, &nd->queue);
